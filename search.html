@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="猫吃狗 - 搜索日记" />
+    <meta property="og:title" content="猫吃狗 - 搜索" />
+    <meta property="og:description" content="搜索日记内容" />
+    <title>猫吃狗 - 搜索</title>
+    <link rel="stylesheet" href="css/style.css" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🐱</text></svg>"
+    />
+  </head>
+  <body>
+    <!-- 顶部导航 -->
+    <header class="site-header">
+      <div class="header-inner">
+        <div class="site-title">
+          <a href="index.html">🐱 猫吃狗</a>
+        </div>
+        <nav class="site-nav">
+          <a href="index.html" class="nav-btn">
+            <span class="icon">📝</span> 时间线
+          </a>
+          <a href="calendar.html" class="nav-btn">
+            <span class="icon">📅</span> 日历
+          </a>
+          <a href="search.html" class="nav-btn active">
+            <span class="icon">🔍</span> 搜索
+          </a>
+          <button class="nav-btn" onclick="Admin.openEditor()" title="写新日记">
+            <span class="icon">✏️</span> 写日记
+          </button>
+          <button class="nav-btn" onclick="Admin.showSettings()" title="GitHub 设置">
+            <span class="icon">⚙️</span>
+          </button>
+        </nav>
+      </div>
+    </header>
+
+    <!-- 主内容 -->
+    <main class="main-content search-page">
+      <!-- 搜索框 -->
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input
+          type="text"
+          id="searchInput"
+          placeholder="搜索日记标题、内容或标签..."
+          autofocus
+        />
+        <button class="clear-btn" id="clearBtn">✕</button>
+      </div>
+
+      <!-- 搜索信息 -->
+      <div id="searchInfo" class="search-info"></div>
+
+      <!-- 搜索结果 -->
+      <div id="searchResults" class="search-results"></div>
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="site-footer">
+      <p>
+        © <span id="footerYear"></span> <a href="index.html">猫吃狗</a> · 用 ❤️
+        记录生活
+      </p>
+    </footer>
+
+    <!-- 脚本 -->
+    <script src="js/config.js"></script>
+    <script src="data/posts.js"></script>
+    <script src="js/data.js"></script>
+    <script src="js/search.js"></script>
+    <script src="js/admin.js"></script>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        document.getElementById("footerYear").textContent =
+          new Date().getFullYear();
+        Admin.init();
+        SearchApp.init(
+          "searchInput",
+          "searchResults",
+          "searchInfo",
+          "clearBtn",
+        );
+      });
+    </script>
+  </body>
+</html>
