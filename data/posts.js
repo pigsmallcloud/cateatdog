@@ -17,6 +17,22 @@ window.__POSTS_DATA__ = [
     "preview": "今天下了一整天的雨 🌧️ 坐在窗边听雨声，感觉很安静。"
   },
   {
+    "slug": "2026-06-18-爱你宝宝",
+    "title": "爱你宝宝",
+    "date": "2026-06-18",
+    "year": 2026,
+    "month": 6,
+    "day": 18,
+    "tags": [
+      "爱情"
+    ],
+    "images": [
+      "https://raw.githubusercontent.com/pigsmallcloud/cateatdog/main/images/2026/06/1781779463886.JPG"
+    ],
+    "file": "posts/2026/06/2026-06-18-爱你宝宝.md",
+    "preview": "今天宝宝教我做了网站，真开心！000001.JPG"
+  },
+  {
     "slug": "2025-06-18-你好世界",
     "title": "你好，世界！🌍",
     "date": "2025-06-18",
