@@ -27,10 +27,10 @@ window.__POSTS_DATA__ = [
       "爱情"
     ],
     "images": [
-      "https://raw.githubusercontent.com/pigsmallcloud/cateatdog/main/images/2026/06/1781779463886.JPG"
+      "https://raw.githubusercontent.com/pigsmallcloud/cateatdog/main/images/2026/06/1781779556472.JPG"
     ],
     "file": "posts/2026/06/2026-06-18-爱你宝宝.md",
-    "preview": "今天宝宝教我做了网站，真开心！000001.JPG"
+    "preview": "哈哈哈哈"
   },
   {
     "slug": "2025-06-18-你好世界",
