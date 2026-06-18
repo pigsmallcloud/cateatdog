@@ -10,500 +10,500 @@
  */
 
 const Admin = {
-  /** 当前编辑模式: 'new' 或 'edit' */
-  mode: 'new',
+    /** 当前编辑模式: 'new' 或 'edit' */
+    mode: 'new',
 
-  /** 正在编辑的日记 slug（编辑模式时） */
-  editSlug: null,
+    /** 正在编辑的日记 slug（编辑模式时） */
+    editSlug: null,
 
-  /** 正在编辑的日记原始内容（编辑模式时） */
-  editOriginalContent: null,
+    /** 正在编辑的日记原始内容（编辑模式时） */
+    editOriginalContent: null,
 
-  /** 是否已初始化 */
-  _initialized: false,
+    /** 是否已初始化 */
+    _initialized: false,
 
-  /**
-   * 初始化管理模块
-   */
-  init() {
-    if (this._initialized) return;
-    this._initialized = true;
+    /**
+     * 初始化管理模块
+     */
+    init() {
+        if (this._initialized) return;
+        this._initialized = true;
 
-    // 从 localStorage 加载 GitHub 设置
-    this._loadSettings();
+        // 从 localStorage 加载 GitHub 设置
+        this._loadSettings();
 
-    // 注入设置和编辑器的 HTML
-    this._injectSettingsDialog();
-    this._injectEditorModal();
-  },
+        // 注入设置和编辑器的 HTML
+        this._injectSettingsDialog();
+        this._injectEditorModal();
+    },
 
-  // ==========================================
-  //  设置管理
-  // ==========================================
+    // ==========================================
+    //  设置管理
+    // ==========================================
 
-  /** 默认设置 */
-  _defaults: {
-    token: '',
-    owner: '',
-    repo: '',
-    branch: 'main',
-  },
+    /** 默认设置 */
+    _defaults: {
+        token: '',
+        owner: '',
+        repo: '',
+        branch: 'main',
+    },
 
-  _loadSettings() {
-    try {
-      const saved = localStorage.getItem('cateatdog_github');
-      if (saved) {
-        Object.assign(this._defaults, JSON.parse(saved));
-      }
-    } catch (e) {
-      console.warn('Admin: 读取设置失败', e);
-    }
-  },
+    _loadSettings() {
+        try {
+            const saved = localStorage.getItem('cateatdog_github');
+            if (saved) {
+                Object.assign(this._defaults, JSON.parse(saved));
+            }
+        } catch (e) {
+            console.warn('Admin: 读取设置失败', e);
+        }
+    },
 
-  _saveSettings() {
-    try {
-      localStorage.setItem('cateatdog_github', JSON.stringify(this._defaults));
-    } catch (e) {
-      console.warn('Admin: 保存设置失败', e);
-    }
-  },
+    _saveSettings() {
+        try {
+            localStorage.setItem('cateatdog_github', JSON.stringify(this._defaults));
+        } catch (e) {
+            console.warn('Admin: 保存设置失败', e);
+        }
+    },
 
-  /** 检查是否已配置 GitHub */
-  isConfigured() {
-    return !!(this._defaults.token && this._defaults.owner && this._defaults.repo);
-  },
+    /** 检查是否已配置 GitHub */
+    isConfigured() {
+        return !!(this._defaults.token && this._defaults.owner && this._defaults.repo);
+    },
 
-  /**
-   * 打开设置对话框
-   */
-  showSettings() {
-    const dlg = document.getElementById('adminSettings');
-    if (!dlg) return;
+    /**
+     * 打开设置对话框
+     */
+    showSettings() {
+        const dlg = document.getElementById('adminSettings');
+        if (!dlg) return;
 
-    document.getElementById('settingsToken').value = this._defaults.token;
-    document.getElementById('settingsOwner').value = this._defaults.owner;
-    document.getElementById('settingsRepo').value = this._defaults.repo;
-    document.getElementById('settingsBranch').value = this._defaults.branch;
+        document.getElementById('settingsToken').value = this._defaults.token;
+        document.getElementById('settingsOwner').value = this._defaults.owner;
+        document.getElementById('settingsRepo').value = this._defaults.repo;
+        document.getElementById('settingsBranch').value = this._defaults.branch;
 
-    dlg.classList.add('active');
-  },
+        dlg.classList.add('active');
+    },
 
-  /** 保存设置 */
-  _onSaveSettings() {
-    this._defaults.token = document.getElementById('settingsToken').value.trim();
-    this._defaults.owner = document.getElementById('settingsOwner').value.trim();
-    this._defaults.repo = document.getElementById('settingsRepo').value.trim();
-    this._defaults.branch = document.getElementById('settingsBranch').value.trim() || 'main';
+    /** 保存设置 */
+    _onSaveSettings() {
+        this._defaults.token = document.getElementById('settingsToken').value.trim();
+        this._defaults.owner = document.getElementById('settingsOwner').value.trim();
+        this._defaults.repo = document.getElementById('settingsRepo').value.trim();
+        this._defaults.branch = document.getElementById('settingsBranch').value.trim() || 'main';
 
-    if (!this._defaults.token || !this._defaults.owner || !this._defaults.repo) {
-      this._showToast('请填写完整的 GitHub 配置信息', 'error');
-      return;
-    }
+        if (!this._defaults.token || !this._defaults.owner || !this._defaults.repo) {
+            this._showToast('请填写完整的 GitHub 配置信息', 'error');
+            return;
+        }
 
-    this._saveSettings();
-    this._closeSettings();
-    this._showToast('✅ 设置已保存', 'success');
-  },
+        this._saveSettings();
+        this._closeSettings();
+        this._showToast('✅ 设置已保存', 'success');
+    },
 
-  _closeSettings() {
-    document.getElementById('adminSettings')?.classList.remove('active');
-  },
+    _closeSettings() {
+        document.getElementById('adminSettings')?.classList.remove('active');
+    },
 
-  // ==========================================
-  //  GitHub API
-  // ==========================================
+    // ==========================================
+    //  GitHub API
+    // ==========================================
 
-  _apiHeaders() {
-    return {
-      'Authorization': `Bearer ${this._defaults.token}`,
-      'Accept': 'application/vnd.github+json',
-      'Content-Type': 'application/json',
-    };
-  },
+    _apiHeaders() {
+        return {
+            'Authorization': `Bearer ${this._defaults.token}`,
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json',
+        };
+    },
 
-  _apiBase() {
-    return `https://api.github.com/repos/${this._defaults.owner}/${this._defaults.repo}`;
-  },
+    _apiBase() {
+        return `https://api.github.com/repos/${this._defaults.owner}/${this._defaults.repo}`;
+    },
 
-  /**
-   * 调用 GitHub API
-   */
-  async _apiRequest(method, path, body) {
-    const url = `${this._apiBase()}${path}`;
-    const opts = {
-      method,
-      headers: this._apiHeaders(),
-    };
-    if (body) opts.body = JSON.stringify(body);
+    /**
+     * 调用 GitHub API
+     */
+    async _apiRequest(method, path, body) {
+        const url = `${this._apiBase()}${path}`;
+        const opts = {
+            method,
+            headers: this._apiHeaders(),
+        };
+        if (body) opts.body = JSON.stringify(body);
 
-    const resp = await fetch(url, opts);
-    const data = await resp.json();
+        const resp = await fetch(url, opts);
+        const data = await resp.json();
 
-    if (!resp.ok) {
-      throw new Error(data.message || `HTTP ${resp.status}`);
-    }
-    return data;
-  },
+        if (!resp.ok) {
+            throw new Error(data.message || `HTTP ${resp.status}`);
+        }
+        return data;
+    },
 
-  /**
-   * 获取文件的 SHA（更新文件时需要）
-   */
-  async _getFileSha(path) {
-    try {
-      const data = await this._apiRequest('GET', `/contents/${path}?ref=${this._defaults.branch}`);
-      return data.sha;
-    } catch (e) {
-      return null; // 文件不存在
-    }
-  },
+    /**
+     * 获取文件的 SHA（更新文件时需要）
+     */
+    async _getFileSha(path) {
+        try {
+            const data = await this._apiRequest('GET', `/contents/${path}?ref=${this._defaults.branch}`);
+            return data.sha;
+        } catch (e) {
+            return null; // 文件不存在
+        }
+    },
 
-  /**
-   * 提交文件到 GitHub
-   * @param {string} path - 文件路径，如 posts/2026/06/2026-06-18-标题.md
-   * @param {string} content - 文件内容
-   * @param {string} message - commit 信息
-   */
-  async _commitFile(path, content, message) {
-    const existingSha = await this._getFileSha(path);
-    const encoded = btoa(unescape(encodeURIComponent(content))); // UTF-8 base64
+    /**
+     * 提交文件到 GitHub
+     * @param {string} path - 文件路径，如 posts/2026/06/2026-06-18-标题.md
+     * @param {string} content - 文件内容
+     * @param {string} message - commit 信息
+     */
+    async _commitFile(path, content, message) {
+        const existingSha = await this._getFileSha(path);
+        const encoded = btoa(unescape(encodeURIComponent(content))); // UTF-8 base64
 
-    const body = {
-      message,
-      content: encoded,
-      branch: this._defaults.branch,
-    };
-    if (existingSha) body.sha = existingSha;
+        const body = {
+            message,
+            content: encoded,
+            branch: this._defaults.branch,
+        };
+        if (existingSha) body.sha = existingSha;
 
-    return this._apiRequest('PUT', `/contents/${path}`, body);
-  },
+        return this._apiRequest('PUT', `/contents/${path}`, body);
+    },
 
-  /**
-   * 触发 GitHub Actions 工作流
-   */
-  async _triggerWorkflow() {
-    try {
-      const workflowId = 'generate-index.yml';
-      await this._apiRequest('POST', `/actions/workflows/${workflowId}/dispatches`, {
-        ref: this._defaults.branch,
-      });
-    } catch (e) {
-      console.warn('Admin: 触发工作流失败（可手动推送）', e);
-    }
-  },
+    /**
+     * 触发 GitHub Actions 工作流
+     */
+    async _triggerWorkflow() {
+        try {
+            const workflowId = 'generate-index.yml';
+            await this._apiRequest('POST', `/actions/workflows/${workflowId}/dispatches`, {
+                ref: this._defaults.branch,
+            });
+        } catch (e) {
+            console.warn('Admin: 触发工作流失败（可手动推送）', e);
+        }
+    },
 
-  // ==========================================
-  //  日记编辑器
-  // ==========================================
+    // ==========================================
+    //  日记编辑器
+    // ==========================================
 
-  /**
-   * 打开写日记 / 编辑日记
-   * @param {Object|null} post - null=写新日记, 有值=编辑
-   */
-  async openEditor(post) {
-    // 检查是否已配置 GitHub
-    if (!this.isConfigured()) {
-      this.showSettings();
-      return;
-    }
+    /**
+     * 打开写日记 / 编辑日记
+     * @param {Object|null} post - null=写新日记, 有值=编辑
+     */
+    async openEditor(post) {
+        // 检查是否已配置 GitHub
+        if (!this.isConfigured()) {
+            this.showSettings();
+            return;
+        }
 
-    const modal = document.getElementById('adminEditor');
-    if (!modal) return;
+        const modal = document.getElementById('adminEditor');
+        if (!modal) return;
 
-    this.mode = post ? 'edit' : 'new';
-    this.editSlug = post ? post.slug : null;
+        this.mode = post ? 'edit' : 'new';
+        this.editSlug = post ? post.slug : null;
 
-    // 设置标题
-    document.getElementById('editorTitle').textContent = post ? '✏️ 编辑日记' : '✏️ 写新日记';
-    document.getElementById('editorSubmitBtn').textContent = post ? '保存修改' : '发布日记';
+        // 设置标题
+        document.getElementById('editorTitle').textContent = post ? '✏️ 编辑日记' : '✏️ 写新日记';
+        document.getElementById('editorSubmitBtn').textContent = post ? '保存修改' : '发布日记';
 
-    // 填充表单
-    const now = new Date();
-    const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+        // 填充表单
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 
-    if (post) {
-      // 编辑模式：加载现有内容
-      document.getElementById('editorTitleInput').value = post.title || '';
-      document.getElementById('editorDate').value = post.date || dateStr;
-      document.getElementById('editorTags').value = (post.tags || []).join(', ');
+        if (post) {
+            // 编辑模式：加载现有内容
+            document.getElementById('editorTitleInput').value = post.title || '';
+            document.getElementById('editorDate').value = post.date || dateStr;
+            document.getElementById('editorTags').value = (post.tags || []).join(', ');
 
-      // 加载 Markdown 原文
-      try {
-        const md = await DataStore.loadMarkdown(post.file);
-        // 去掉 front matter
-        const bodyMatch = md.match(/^---\n[\s\S]*?\n---\n([\s\S]*)$/);
-        document.getElementById('editorContent').value = bodyMatch ? bodyMatch[1].trim() : md;
-        this.editOriginalContent = md;
-      } catch (e) {
-        document.getElementById('editorContent').value = '';
+            // 加载 Markdown 原文
+            try {
+                const md = await DataStore.loadMarkdown(post.file);
+                // 去掉 front matter
+                const bodyMatch = md.match(/^---\n[\s\S]*?\n---\n([\s\S]*)$/);
+                document.getElementById('editorContent').value = bodyMatch ? bodyMatch[1].trim() : md;
+                this.editOriginalContent = md;
+            } catch (e) {
+                document.getElementById('editorContent').value = '';
+                this.editOriginalContent = null;
+            }
+
+            document.getElementById('editorImages').value = (post.images || []).join('\n');
+        } else {
+            // 新建模式
+            document.getElementById('editorTitleInput').value = '';
+            document.getElementById('editorDate').value = dateStr;
+            document.getElementById('editorTags').value = '';
+            document.getElementById('editorContent').value = '';
+            document.getElementById('editorImages').value = '';
+            this.editOriginalContent = null;
+        }
+
+        modal.classList.add('active');
+        document.getElementById('editorTitleInput').focus();
+    },
+
+    /** 关闭编辑器 */
+    closeEditor() {
+        document.getElementById('adminEditor')?.classList.remove('active');
+        this.editSlug = null;
         this.editOriginalContent = null;
-      }
+    },
 
-      document.getElementById('editorImages').value = (post.images || []).join('\n');
-    } else {
-      // 新建模式
-      document.getElementById('editorTitleInput').value = '';
-      document.getElementById('editorDate').value = dateStr;
-      document.getElementById('editorTags').value = '';
-      document.getElementById('editorContent').value = '';
-      document.getElementById('editorImages').value = '';
-      this.editOriginalContent = null;
-    }
+    /**
+     * 保存日记
+     */
+    async _onSaveDiary() {
+        const title = document.getElementById('editorTitleInput').value.trim();
+        const date = document.getElementById('editorDate').value.trim();
+        const tagsRaw = document.getElementById('editorTags').value.trim();
+        const content = document.getElementById('editorContent').value.trim();
+        const imagesRaw = document.getElementById('editorImages').value.trim();
 
-    modal.classList.add('active');
-    document.getElementById('editorTitleInput').focus();
-  },
+        // 验证
+        if (!title) { this._showToast('请输入日记标题', 'error'); return; }
+        if (!date) { this._showToast('请选择日期', 'error'); return; }
+        if (!content) { this._showToast('请输入日记内容', 'error'); return; }
 
-  /** 关闭编辑器 */
-  closeEditor() {
-    document.getElementById('adminEditor')?.classList.remove('active');
-    this.editSlug = null;
-    this.editOriginalContent = null;
-  },
+        if (!this._defaults.token || !this._defaults.owner || !this._defaults.repo) {
+            this._showToast('请先在设置中配置 GitHub', 'error');
+            this.closeEditor();
+            this.showSettings();
+            return;
+        }
 
-  /**
-   * 保存日记
-   */
-  async _onSaveDiary() {
-    const title = document.getElementById('editorTitleInput').value.trim();
-    const date = document.getElementById('editorDate').value.trim();
-    const tagsRaw = document.getElementById('editorTags').value.trim();
-    const content = document.getElementById('editorContent').value.trim();
-    const imagesRaw = document.getElementById('editorImages').value.trim();
+        // 解析标签
+        const tags = tagsRaw
+            ? tagsRaw.split(/[,，、]/).map(s => s.trim()).filter(Boolean)
+            : [];
 
-    // 验证
-    if (!title) { this._showToast('请输入日记标题', 'error'); return; }
-    if (!date) { this._showToast('请选择日期', 'error'); return; }
-    if (!content) { this._showToast('请输入日记内容', 'error'); return; }
+        // 解析图片
+        const images = imagesRaw
+            ? imagesRaw.split('\n').map(s => s.trim()).filter(Boolean)
+            : [];
 
-    if (!this._defaults.token || !this._defaults.owner || !this._defaults.repo) {
-      this._showToast('请先在设置中配置 GitHub', 'error');
-      this.closeEditor();
-      this.showSettings();
-      return;
-    }
+        // 构建 Markdown 内容
+        let md = '---\n';
+        md += `title: ${title}\n`;
+        md += `date: ${date}\n`;
+        if (tags.length > 0) {
+            md += `tags: [${tags.map(t => `"${t}"`).join(', ')}]\n`;
+        }
+        if (images.length > 0) {
+            md += 'images:\n';
+            images.forEach(img => { md += `  - ${img}\n`; });
+        }
+        md += '---\n\n';
+        md += content;
+        if (!content.endsWith('\n')) md += '\n';
 
-    // 解析标签
-    const tags = tagsRaw
-      ? tagsRaw.split(/[,，、]/).map(s => s.trim()).filter(Boolean)
-      : [];
+        // 构建文件路径
+        const dateObj = new Date(date + 'T00:00:00');
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
 
-    // 解析图片
-    const images = imagesRaw
-      ? imagesRaw.split('\n').map(s => s.trim()).filter(Boolean)
-      : [];
+        // 从标题生成 slug（只保留字母数字中文和横线）
+        const slugTitle = title
+            .replace(/[^\u4e00-\u9fff\w\s-]/g, '')
+            .replace(/\s+/g, '-')
+            .replace(/-+/g, '-')
+            .replace(/^-|-$/g, '') || 'untitled';
 
-    // 构建 Markdown 内容
-    let md = '---\n';
-    md += `title: ${title}\n`;
-    md += `date: ${date}\n`;
-    if (tags.length > 0) {
-      md += `tags: [${tags.map(t => `"${t}"`).join(', ')}]\n`;
-    }
-    if (images.length > 0) {
-      md += 'images:\n';
-      images.forEach(img => { md += `  - ${img}\n`; });
-    }
-    md += '---\n\n';
-    md += content;
-    if (!content.endsWith('\n')) md += '\n';
+        const fileName = `${date}-${slugTitle}.md`;
+        const filePath = `posts/${year}/${month}/${fileName}`;
 
-    // 构建文件路径
-    const dateObj = new Date(date + 'T00:00:00');
-    const year = dateObj.getFullYear();
-    const month = String(dateObj.getMonth() + 1).padStart(2, '0');
-    const day = String(dateObj.getDate()).padStart(2, '0');
+        // 构建 commit 信息
+        const commitMsg = this.mode === 'edit'
+            ? `📝 编辑日记: ${title}`
+            : `📝 新增日记: ${title}`;
 
-    // 从标题生成 slug（只保留字母数字中文和横线）
-    const slugTitle = title
-      .replace(/[^\u4e00-\u9fff\w\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '') || 'untitled';
+        // 显示保存中状态
+        const btn = document.getElementById('editorSubmitBtn');
+        const originalText = btn.textContent;
+        btn.textContent = '⏳ 保存中...';
+        btn.disabled = true;
 
-    const fileName = `${date}-${slugTitle}.md`;
-    const filePath = `posts/${year}/${month}/${fileName}`;
+        try {
+            // 提交到 GitHub
+            await this._commitFile(filePath, md, commitMsg);
 
-    // 构建 commit 信息
-    const commitMsg = this.mode === 'edit'
-      ? `📝 编辑日记: ${title}`
-      : `📝 新增日记: ${title}`;
+            // 触发 Actions 重新生成索引
+            await this._triggerWorkflow();
 
-    // 显示保存中状态
-    const btn = document.getElementById('editorSubmitBtn');
-    const originalText = btn.textContent;
-    btn.textContent = '⏳ 保存中...';
-    btn.disabled = true;
+            this._showToast(`✅ 日记已${this.mode === 'edit' ? '更新' : '发布'}！请等待索引更新...`, 'success');
+            this.closeEditor();
 
-    try {
-      // 提交到 GitHub
-      await this._commitFile(filePath, md, commitMsg);
+            // 如果是在详情页编辑，等一会儿刷新
+            if (this.mode === 'edit' && window.location.pathname.includes('post.html')) {
+                setTimeout(() => window.location.reload(), 2000);
+            }
+        } catch (e) {
+            console.error('Admin: 保存失败', e);
+            this._showToast(`❌ 保存失败: ${e.message}`, 'error');
+        } finally {
+            btn.textContent = originalText;
+            btn.disabled = false;
+        }
+    },
 
-      // 触发 Actions 重新生成索引
-      await this._triggerWorkflow();
+    // ==========================================
+    //  图片上传
+    // ==========================================
 
-      this._showToast(`✅ 日记已${this.mode === 'edit' ? '更新' : '发布'}！请等待索引更新...`, 'success');
-      this.closeEditor();
+    /**
+     * 打开图片上传对话框
+     */
+    showImageUploader() {
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.multiple = false;
 
-      // 如果是在详情页编辑，等一会儿刷新
-      if (this.mode === 'edit' && window.location.pathname.includes('post.html')) {
-        setTimeout(() => window.location.reload(), 2000);
-      }
-    } catch (e) {
-      console.error('Admin: 保存失败', e);
-      this._showToast(`❌ 保存失败: ${e.message}`, 'error');
-    } finally {
-      btn.textContent = originalText;
-      btn.disabled = false;
-    }
-  },
+        input.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
 
-  // ==========================================
-  //  图片上传
-  // ==========================================
+            if (!this.isConfigured()) {
+                this._showToast('请先在设置中配置 GitHub', 'error');
+                this.showSettings();
+                return;
+            }
 
-  /**
-   * 打开图片上传对话框
-   */
-  showImageUploader() {
-    const input = document.createElement('input');
-    input.type = 'file';
-    input.accept = 'image/*';
-    input.multiple = false;
+            // 验证文件大小（限制 10MB）
+            if (file.size > 10 * 1024 * 1024) {
+                this._showToast('图片不能超过 10MB', 'error');
+                return;
+            }
 
-    input.onchange = async (e) => {
-      const file = e.target.files[0];
-      if (!file) return;
+            this._showToast('⏫ 上传中...', 'info');
 
-      if (!this.isConfigured()) {
-        this._showToast('请先在设置中配置 GitHub', 'error');
-        this.showSettings();
-        return;
-      }
+            try {
+                const url = await this._uploadImage(file);
+                // 将图片链接插入到内容编辑器中
+                const textarea = document.getElementById('editorContent');
+                const cursorPos = textarea.selectionStart;
+                const imgMd = `![${file.name}](${url})`;
+                textarea.value = textarea.value.slice(0, cursorPos) + imgMd + '\n' + textarea.value.slice(cursorPos);
 
-      // 验证文件大小（限制 10MB）
-      if (file.size > 10 * 1024 * 1024) {
-        this._showToast('图片不能超过 10MB', 'error');
-        return;
-      }
+                // 也添加到图片列表
+                const imgInput = document.getElementById('editorImages');
+                imgInput.value = imgInput.value ? imgInput.value + '\n' + url : url;
 
-      this._showToast('⏫ 上传中...', 'info');
+                this._showToast('✅ 图片已上传并插入', 'success');
+            } catch (e) {
+                console.error('Admin: 上传失败', e);
+                this._showToast(`❌ 上传失败: ${e.message}`, 'error');
+            }
+        };
 
-      try {
-        const url = await this._uploadImage(file);
-        // 将图片链接插入到内容编辑器中
-        const textarea = document.getElementById('editorContent');
-        const cursorPos = textarea.selectionStart;
-        const imgMd = `![${file.name}](${url})`;
-        textarea.value = textarea.value.slice(0, cursorPos) + imgMd + '\n' + textarea.value.slice(cursorPos);
+        input.click();
+    },
 
-        // 也添加到图片列表
-        const imgInput = document.getElementById('editorImages');
-        imgInput.value = imgInput.value ? imgInput.value + '\n' + url : url;
+    /**
+     * 上传图片到 GitHub 仓库
+     * @param {File} file
+     * @returns {Promise<string>} 图片 URL
+     */
+    async _uploadImage(file) {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
 
-        this._showToast('✅ 图片已上传并插入', 'success');
-      } catch (e) {
-        console.error('Admin: 上传失败', e);
-        this._showToast(`❌ 上传失败: ${e.message}`, 'error');
-      }
-    };
+        // 生成唯一文件名
+        const ext = file.name.split('.').pop() || 'jpg';
+        const timestamp = Date.now();
+        const imageName = `${timestamp}.${ext}`;
+        const path = `images/${year}/${month}/${imageName}`;
 
-    input.click();
-  },
+        // 读取文件为 base64
+        const base64 = await this._fileToBase64(file);
 
-  /**
-   * 上传图片到 GitHub 仓库
-   * @param {File} file
-   * @returns {Promise<string>} 图片 URL
-   */
-  async _uploadImage(file) {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
+        const body = {
+            message: `🖼️ 上传图片: ${imageName}`,
+            content: base64.split(',')[1], // 去掉 data:image/...;base64, 前缀
+            branch: this._defaults.branch,
+        };
 
-    // 生成唯一文件名
-    const ext = file.name.split('.').pop() || 'jpg';
-    const timestamp = Date.now();
-    const imageName = `${timestamp}.${ext}`;
-    const path = `images/${year}/${month}/${imageName}`;
+        await this._apiRequest('PUT', `/contents/${path}`, body);
 
-    // 读取文件为 base64
-    const base64 = await this._fileToBase64(file);
+        // 返回原始文件 URL（GitHub raw）
+        return `https://raw.githubusercontent.com/${this._defaults.owner}/${this._defaults.repo}/${this._defaults.branch}/${path}`;
+    },
 
-    const body = {
-      message: `🖼️ 上传图片: ${imageName}`,
-      content: base64.split(',')[1], // 去掉 data:image/...;base64, 前缀
-      branch: this._defaults.branch,
-    };
+    /**
+     * File → Base64
+     */
+    _fileToBase64(file) {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = reject;
+            reader.readAsDataURL(file);
+        });
+    },
 
-    await this._apiRequest('PUT', `/contents/${path}`, body);
+    // ==========================================
+    //  删除日记
+    // ==========================================
 
-    // 返回原始文件 URL（GitHub raw）
-    return `https://raw.githubusercontent.com/${this._defaults.owner}/${this._defaults.repo}/${this._defaults.branch}/${path}`;
-  },
+    /**
+     * 删除日记
+     * @param {Object} post
+     */
+    async deletePost(post) {
+        if (!post || !post.file) return;
 
-  /**
-   * File → Base64
-   */
-  _fileToBase64(file) {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.onload = () => resolve(reader.result);
-      reader.onerror = reject;
-      reader.readAsDataURL(file);
-    });
-  },
+        if (!confirm(`确定要删除「${post.title}」吗？此操作不可撤销。`)) return;
 
-  // ==========================================
-  //  删除日记
-  // ==========================================
+        if (!this.isConfigured()) {
+            this._showToast('请先在设置中配置 GitHub', 'error');
+            this.showSettings();
+            return;
+        }
 
-  /**
-   * 删除日记
-   * @param {Object} post
-   */
-  async deletePost(post) {
-    if (!post || !post.file) return;
+        try {
+            const sha = await this._getFileSha(post.file);
+            if (!sha) throw new Error('文件不存在');
 
-    if (!confirm(`确定要删除「${post.title}」吗？此操作不可撤销。`)) return;
+            await this._apiRequest('DELETE', `/contents/${post.file}`, {
+                message: `🗑️ 删除日记: ${post.title}`,
+                sha,
+                branch: this._defaults.branch,
+            });
 
-    if (!this.isConfigured()) {
-      this._showToast('请先在设置中配置 GitHub', 'error');
-      this.showSettings();
-      return;
-    }
+            await this._triggerWorkflow();
+            this._showToast('✅ 日记已删除', 'success');
 
-    try {
-      const sha = await this._getFileSha(post.file);
-      if (!sha) throw new Error('文件不存在');
+            // 跳转到首页
+            setTimeout(() => {
+                window.location.href = 'index.html';
+            }, 1500);
+        } catch (e) {
+            console.error('Admin: 删除失败', e);
+            this._showToast(`❌ 删除失败: ${e.message}`, 'error');
+        }
+    },
 
-      await this._apiRequest('DELETE', `/contents/${post.file}`, {
-        message: `🗑️ 删除日记: ${post.title}`,
-        sha,
-        branch: this._defaults.branch,
-      });
+    // ==========================================
+    //  UI 注入
+    // ==========================================
 
-      await this._triggerWorkflow();
-      this._showToast('✅ 日记已删除', 'success');
+    /** 注入设置对话框 HTML */
+    _injectSettingsDialog() {
+        if (document.getElementById('adminSettings')) return;
 
-      // 跳转到首页
-      setTimeout(() => {
-        window.location.href = 'index.html';
-      }, 1500);
-    } catch (e) {
-      console.error('Admin: 删除失败', e);
-      this._showToast(`❌ 删除失败: ${e.message}`, 'error');
-    }
-  },
-
-  // ==========================================
-  //  UI 注入
-  // ==========================================
-
-  /** 注入设置对话框 HTML */
-  _injectSettingsDialog() {
-    if (document.getElementById('adminSettings')) return;
-
-    const html = `
+        const html = `
       <div id="adminSettings" class="modal-overlay">
         <div class="modal-dialog settings-dialog">
           <div class="modal-header">
@@ -540,14 +540,14 @@ const Admin = {
         </div>
       </div>
     `;
-    document.body.insertAdjacentHTML('beforeend', html);
-  },
+        document.body.insertAdjacentHTML('beforeend', html);
+    },
 
-  /** 注入编辑器模态框 HTML */
-  _injectEditorModal() {
-    if (document.getElementById('adminEditor')) return;
+    /** 注入编辑器模态框 HTML */
+    _injectEditorModal() {
+        if (document.getElementById('adminEditor')) return;
 
-    const html = `
+        const html = `
       <div id="adminEditor" class="modal-overlay">
         <div class="modal-dialog editor-dialog">
           <div class="modal-header">
@@ -597,42 +597,42 @@ const Admin = {
         </div>
       </div>
     `;
-    document.body.insertAdjacentHTML('beforeend', html);
-  },
+        document.body.insertAdjacentHTML('beforeend', html);
+    },
 
-  // ==========================================
-  //  Toast 提示
-  // ==========================================
+    // ==========================================
+    //  Toast 提示
+    // ==========================================
 
-  _showToast(message, type) {
-    let toast = document.getElementById('adminToast');
-    if (!toast) {
-      toast = document.createElement('div');
-      toast.id = 'adminToast';
-      toast.className = 'admin-toast';
-      document.body.appendChild(toast);
-    }
+    _showToast(message, type) {
+        let toast = document.getElementById('adminToast');
+        if (!toast) {
+            toast = document.createElement('div');
+            toast.id = 'adminToast';
+            toast.className = 'admin-toast';
+            document.body.appendChild(toast);
+        }
 
-    toast.textContent = message;
-    toast.className = 'admin-toast show';
-    if (type === 'error') toast.classList.add('toast-error');
-    else if (type === 'success') toast.classList.add('toast-success');
+        toast.textContent = message;
+        toast.className = 'admin-toast show';
+        if (type === 'error') toast.classList.add('toast-error');
+        else if (type === 'success') toast.classList.add('toast-success');
 
-    clearTimeout(toast._hideTimer);
-    toast._hideTimer = setTimeout(() => {
-      toast.classList.remove('show', 'toast-error', 'toast-success');
-    }, 4000);
-  },
+        clearTimeout(toast._hideTimer);
+        toast._hideTimer = setTimeout(() => {
+            toast.classList.remove('show', 'toast-error', 'toast-success');
+        }, 4000);
+    },
 };
 
 // ==========================================
 //  删除确认（独立函数，避免闭包问题）
 // ==========================================
 Admin._onDeletePost = function () {
-  if (!Admin.editSlug) return;
-  const post = DataStore.getBySlug(Admin.editSlug);
-  if (post) {
-    Admin.closeEditor();
-    Admin.deletePost(post);
-  }
+    if (!Admin.editSlug) return;
+    const post = DataStore.getBySlug(Admin.editSlug);
+    if (post) {
+        Admin.closeEditor();
+        Admin.deletePost(post);
+    }
 };
